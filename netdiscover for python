@@ -1,0 +1,28 @@
+import argparse  # Argümanları analiz etmek için argparse kütüphanesini ekliyoruz
+import scapy.all as scapy  # Ağ tarama işlemleri için scapy kütüphanesini ekliyoruz
+
+class AARP_Ping(object):
+    def __init__(self):
+        print("AARP ping ÇAĞIRILDI")  # Sınıf başlatıldığında bir mesaj yazdırıyoruz
+
+    def kullanici_girdisini_al(self):
+        parse = argparse.ArgumentParser()  # Argümanları analiz etmek için bir argüman ayrıştırıcısı oluşturuyoruz
+        parse.add_argument("-i", "--ipadress", help="IP Adresini giriniz")  # -i veya --ipadress argümanını bekliyoruz ve bu argüman için yardım metni ekliyoruz
+        args = parse.parse_args()  # Kullanıcının sağladığı argümanları alıyoruz
+        if args.ipadress is not None:  # Eğer kullanıcı bir IP adresi sağladıysa
+            return args  # Argümanları döndürüyoruz
+        else:
+            print("LÜTFEN IP ADRESİNİZİ -i ARGÜMANINI KULLANARAK YAZINIZ")  # IP adresi girilmediyse bir hata mesajı yazdırıyoruz
+
+    def arp_istek(self, ip):
+        hedef_ip = scapy.ARP(pdst=ip)  # Hedef IP adresi için bir ARP paketi oluşturuyoruz
+        yayın_paketi = scapy.Ether(dst="ff:ff:ff:ff:ff:ff")  # Yayın paketi oluşturuyoruz
+        bileşik_paket = yayın_paketi / hedef_ip  # Yayın paketini ve ARP isteğini birleştiriyoruz
+        (answered_list, unanswered_list) = scapy.srp(bileşik_paket, timeout=2)  # Yayın paketini gönderiyoruz ve yanıtları alıyoruz
+        answered_list.summary()  # Yanıtları özetleyen bir metot çağırıyoruz
+
+
+if __name__ == "__main__":
+    arp_ping = AARP_Ping()  # AARP_Ping sınıfından bir nesne oluşturuyoruz
+    kullanici_girdi = arp_ping.kullanici_girdisini_al()  # Kullanıcıdan giriş alıyoruz
+    arp_ping.arp_istek(kullanici_girdi.ipadress)  # ARP isteğini gerçekleştiriyoruz
